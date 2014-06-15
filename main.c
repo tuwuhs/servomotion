@@ -37,7 +37,7 @@ int main(void)
 	for (;;) {
 		uint8_t data;
 
-		if (gpio_is_high(&pushbutton)) {
+		if (gpio_is_low(&pushbutton)) {
 			gpio_set_high(&green_led);
 		} else {
 			gpio_set_low(&green_led);

@@ -68,6 +68,11 @@ inline void gpio_toggle(struct gpio_pin* _this)
 
 inline bool gpio_is_high(struct gpio_pin* _this)
 {
+	return (*(_this->pin) & (1<<_this->index));
+}
+
+inline bool gpio_is_low(struct gpio_pin* _this)
+{
 	return !(*(_this->pin) & (1<<_this->index));
 }
 
