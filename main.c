@@ -12,6 +12,7 @@
 #include <stdbool.h>
 
 #include <avr/io.h>
+#include <avr/wdt.h>
 #include <util/delay.h>
 
 #include "gpio.h"
@@ -56,6 +57,8 @@ int main(void)
 	aparser_init(&uart_parser, 2);
 	aparser_register_commands(&uart_parser, uart_parser_item);
 
+	wdt_enable(WDTO_500MS);
+
 	sei();
 
 	for (;;) {
@@ -76,6 +79,8 @@ int main(void)
 			timer_restart(&heartbeat_timer);
 			gpio_toggle(&heartbeat_led);
 		}
+
+		wdt_reset();
 	}
 
 	return 0;
