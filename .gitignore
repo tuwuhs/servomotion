@@ -1,7 +1,6 @@
 
-
-Release/
-Debug/
+Release/*
+Debug/*
 *~
 *.eep
 *.elf
@@ -13,5 +12,5 @@ Debug/
 *.swp
 *.sym
 .dep
-
+!Release/*.hex
 
