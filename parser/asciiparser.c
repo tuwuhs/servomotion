@@ -10,12 +10,14 @@
 #include <stdbool.h>
 #include <string.h>
 #include "asciiparser.h"
+#include "timer.h"
 
 static void aparser_eval(struct aparser_ctx* ctx);
 
-void aparser_init(struct aparser_ctx* ctx)
+void aparser_init(struct aparser_ctx* ctx, int timeout_ms)
 {
 	ctx->state = APARSER_S_INIT;
+	timer_set_period_ms(&ctx->timeout, timeout_ms);
 }
 
 uint8_t aparser_register_commands(struct aparser_ctx* ctx,
@@ -41,9 +43,14 @@ uint8_t aparser_update_and_execute(struct aparser_ctx* ctx, char data)
 {
 	uint8_t ret_code = APARSER_RETCODE_SUCCESS;
 
+	if (timer_has_expired(&ctx->timeout)) {
+		ctx->state = APARSER_S_INIT;
+	}
+
 	switch (ctx->state) {
 	case APARSER_S_INIT:
 		if (data == APARSER_SENTINEL_OPEN) {
+			timer_restart(&ctx->timeout);
 			ctx->state = APARSER_S_COMMAND;
 			ctx->command_count = 0;
 		}
@@ -63,6 +70,7 @@ uint8_t aparser_update_and_execute(struct aparser_ctx* ctx, char data)
 			ctx->argument_buffer[0] = '\0';
 			aparser_eval(ctx);
 		} else {
+			timer_restart(&ctx->timeout);
 			ctx->command_buffer[ctx->command_count] = data;
 			ctx->command_count += 1;
 		}
@@ -77,6 +85,7 @@ uint8_t aparser_update_and_execute(struct aparser_ctx* ctx, char data)
 			ctx->argument_buffer[ctx->argument_count] = '\0';
 			aparser_eval(ctx);
 		} else {
+			timer_restart(&ctx->timeout);
 			ctx->argument_buffer[ctx->argument_count] = data;
 			ctx->argument_count += 1;
 		}

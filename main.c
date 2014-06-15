@@ -53,7 +53,7 @@ int main(void)
 	uart_init();
 	systick_init();
 
-	aparser_init(&uart_parser);
+	aparser_init(&uart_parser, 2);
 	aparser_register_commands(&uart_parser, uart_parser_item);
 
 	sei();

@@ -35,7 +35,7 @@ void systick_init(void)
 	TIMSK |= (1<<TOIE0);
 }
 
-inline uint16_t systick_get_current(void)
+uint16_t systick_get_current(void)
 {
 	uint16_t tick;
 	uint8_t sreg = SREG;
