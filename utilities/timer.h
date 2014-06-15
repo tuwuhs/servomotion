@@ -38,7 +38,7 @@ inline void timer_set_period(struct timer* _this, uint16_t period_tick)
 
 inline void timer_set_period_ms(struct timer* _this, uint16_t period_ms)
 {
-	timer_set_period(_this, period_ms * 1000UL / SYSTICK_PERIOD_US);
+	timer_set_period(_this, period_ms * (1000UL / SYSTICK_PERIOD_US));
 }
 
 inline bool timer_has_expired(struct timer* _this)
