@@ -45,10 +45,10 @@ int main(void)
 
 	struct aparser_ctx uart_parser;
 
-	gpio_init(&green_led, &PORTB, 0, true, false);
-	gpio_init(&yellow_led, &PORTC, 0, true, false);
-	gpio_init(&pushbutton, &PORTB, 1, false, true);
-	gpio_init(&heartbeat_led, &PORTB, 2, true, false);
+	gpio_init_output(&green_led, &PORTB, 0, false);
+	gpio_init_output(&yellow_led, &PORTC, 0, false);
+	gpio_init_input(&pushbutton, &PORTB, 1, true);
+	gpio_init_output(&heartbeat_led, &PORTB, 2, false);
 	timer_set_period_ms(&heartbeat_timer, 500);
 
 	uart_init();

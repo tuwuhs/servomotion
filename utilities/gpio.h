@@ -15,30 +15,38 @@
 struct gpio_pin
 {
 	volatile uint8_t* port;
-	volatile uint8_t* ddr;
-	volatile uint8_t* pin;
 	uint8_t index;
-	bool inverted;
 };
 
-inline void gpio_init(struct gpio_pin* _this, volatile uint8_t* port, uint8_t index, bool output, bool pullup)
+inline void gpio_init_output(struct gpio_pin* _this, volatile uint8_t* port, uint8_t index, bool set_high)
 {
+	volatile uint8_t* ddr = port-1;
 	_this->port = port;
-	_this->ddr = port-1;
-	_this->pin = port-2;
 	_this->index = index;
 
 	*(_this->port) &= ~(1<<_this->index);
 
-	if (output) {
-		*(_this->ddr) |= (1<<_this->index);
+	*(ddr) |= (1<<_this->index);
+	if (set_high) {
+		*(_this->port) |= (1<<_this->index);
 	} else {
-		*(_this->ddr) &= ~(1<<_this->index);
-		if (pullup) {
-			*(_this->port) |= (1<<_this->index);
-		} else {
-			*(_this->port) &= ~(1<<_this->index);
-		}
+		*(_this->port) &= ~(1<<_this->index);
+	}
+}
+
+inline void gpio_init_input(struct gpio_pin* _this, volatile uint8_t* port, uint8_t index, bool pullup)
+{
+	volatile uint8_t* ddr = port-1;
+	_this->port = port;
+	_this->index = index;
+
+	*(_this->port) &= ~(1<<_this->index);
+
+	*(ddr) &= ~(1<<_this->index);
+	if (pullup) {
+		*(_this->port) |= (1<<_this->index);
+	} else {
+		*(_this->port) &= ~(1<<_this->index);
 	}
 }
 
@@ -68,12 +76,14 @@ inline void gpio_toggle(struct gpio_pin* _this)
 
 inline bool gpio_is_high(struct gpio_pin* _this)
 {
-	return (*(_this->pin) & (1<<_this->index));
+	volatile uint8_t* pin = _this->port-2;
+	return (*(pin) & (1<<_this->index));
 }
 
 inline bool gpio_is_low(struct gpio_pin* _this)
 {
-	return !(*(_this->pin) & (1<<_this->index));
+	volatile uint8_t* pin = _this->port-2;
+	return !(*(pin) & (1<<_this->index));
 }
 
 #endif /* GPIO_H_ */

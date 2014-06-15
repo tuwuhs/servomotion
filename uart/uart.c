@@ -97,8 +97,6 @@ void uart_init(void)
 uint8_t uart_putchar(uint8_t data)
 {
 #ifdef UART_INTERRUPT
-	uint8_t sreg;
-
 	if (!uart_is_tx_enable()) {
 		return UART_RETCODE_DISABLED;
 	}
@@ -138,8 +136,6 @@ uint8_t uart_putchar(uint8_t data)
 uint8_t uart_getchar(uint8_t* data)
 {
 #ifdef UART_INTERRUPT
-	uint8_t sreg;
-
 	if (!uart_is_rx_enable()) {
 		return UART_RETCODE_DISABLED;
 	}

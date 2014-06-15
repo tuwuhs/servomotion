@@ -43,7 +43,8 @@ uint8_t aparser_update_and_execute(struct aparser_ctx* ctx, char data)
 {
 	uint8_t ret_code = APARSER_RETCODE_SUCCESS;
 
-	if (timer_has_expired(&ctx->timeout)) {
+	// Jump directly to INIT if timed-out
+	if (ctx->state != APARSER_S_INIT && timer_has_expired(&ctx->timeout)) {
 		ctx->state = APARSER_S_INIT;
 	}
 
