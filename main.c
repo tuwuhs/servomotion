@@ -15,6 +15,7 @@
 #include "gpio.h"
 #include "timer.h"
 #include "systick.h"
+#include "uart.h"
 
 int main(void)
 {
@@ -29,19 +30,26 @@ int main(void)
 	gpio_init(&heartbeat_led, &PORTB, 2, true, false);
 	timer_set_period_ms(&heartbeat_timer, 500);
 
+	uart_init();
 	systick_init();
 	sei();
 
 	for (;;) {
+		uint8_t data;
+
 		if (gpio_is_high(&pushbutton)) {
 			gpio_set_high(&green_led);
 		} else {
 			gpio_set_low(&green_led);
 		}
 
+		if (uart_getchar(&data) == UART_RETCODE_SUCCESS) {
+			uart_putchar(data);
+		}
+
 		if (timer_has_expired(&heartbeat_timer)) {
-			gpio_toggle(&heartbeat_led);
 			timer_restart(&heartbeat_timer);
+			gpio_toggle(&heartbeat_led);
 		}
 	}
 
