@@ -18,7 +18,7 @@
 
 #define RELOAD_VALUE      ((uint8_t) (-(F_CPU/64/SYSTICK_PERIOD_US)))
 
-volatile uint16_t g_tick;
+static volatile uint16_t g_tick;
 
 ISR(TIMER0_OVF_vect)
 {

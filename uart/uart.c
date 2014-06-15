@@ -14,14 +14,14 @@
 
 #ifdef UART_INTERRUPT
 // Pointers are post-increment (points to current data, this is the read/write head)
-uint8_t rx_buffer[UART_RX_BUFFER_SIZE];
-uint8_t rx_pointer_read, rx_pointer_write;
-volatile uint8_t rx_count;
-volatile bool uart_rx_overflow;
+static uint8_t rx_buffer[UART_RX_BUFFER_SIZE];
+static uint8_t rx_pointer_read, rx_pointer_write;
+static volatile uint8_t rx_count;
+static volatile bool uart_rx_overflow;
 
-uint8_t tx_buffer[UART_TX_BUFFER_SIZE];
-uint8_t tx_pointer_read, tx_pointer_write;
-volatile uint8_t tx_count;
+static uint8_t tx_buffer[UART_TX_BUFFER_SIZE];
+static uint8_t tx_pointer_read, tx_pointer_write;
+static volatile uint8_t tx_count;
 
 ISR(USART_RXC_vect)
 {
@@ -111,14 +111,13 @@ uint8_t uart_putchar(uint8_t data)
 	tx_buffer[tx_pointer_write] = data;
 	tx_pointer_write = (tx_pointer_write + 1) % UART_TX_BUFFER_SIZE;
 
-	// Disable interrupt to lock the resources
-	// Increment count, enable UDR interrupt
-	sreg = SREG;
-	cli();
+	// Increment count (atomic, no locking needed)
 	tx_count++;
-	SREG = sreg;
 
-	UCSRB |= _BV(UDRIE);
+	// Enable UDR interrupt
+	if (tx_count >= 1) {
+		UCSRB |= _BV(UDRIE);
+	}
 	
 	return UART_RETCODE_SUCCESS;
 #else
@@ -159,12 +158,8 @@ uint8_t uart_getchar(uint8_t* data)
 	*data = rx_buffer[rx_pointer_read];
 	rx_pointer_read = (rx_pointer_read + 1) % UART_RX_BUFFER_SIZE;
 
-	// Disable interrupt to lock the resources
-	// Decrement count
-	sreg = SREG;
-	cli();
+	// Decrement count (atomic, no locking needed)
 	rx_count--;
-	SREG = sreg;
 
 	return UART_RETCODE_SUCCESS;
 #else
