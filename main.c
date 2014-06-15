@@ -7,7 +7,9 @@
  *      All rights reserved.
  */
 
-#include <stdbool.h>
+#include <stdlib.h>
+//#include <stdint.h>
+//#include <stdbool.h>
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -16,6 +18,21 @@
 #include "timer.h"
 #include "systick.h"
 #include "uart.h"
+#include "parser.h"
+
+void yeah(char* arg, uint8_t arglen);
+
+static struct gpio_pin yellow_led;
+
+struct parser_item uart_parser_item[] = {
+	{"y", yeah},
+	{NULL, NULL}
+};
+
+void yeah(char* arg, uint8_t arglen)
+{
+	gpio_toggle(&yellow_led);
+}
 
 int main(void)
 {
@@ -25,13 +42,20 @@ int main(void)
 
 	struct timer heartbeat_timer;
 
+	struct parser_ctx uart_parser;
+
 	gpio_init(&green_led, &PORTB, 0, true, false);
+	gpio_init(&yellow_led, &PORTC, 0, true, false);
 	gpio_init(&pushbutton, &PORTB, 1, false, true);
 	gpio_init(&heartbeat_led, &PORTB, 2, true, false);
 	timer_set_period_ms(&heartbeat_timer, 500);
 
 	uart_init();
 	systick_init();
+
+	parser_init(&uart_parser);
+	parser_register_commands(&uart_parser, uart_parser_item);
+
 	sei();
 
 	for (;;) {
@@ -45,6 +69,7 @@ int main(void)
 
 		if (uart_getchar(&data) == UART_RETCODE_SUCCESS) {
 			uart_putchar(data);
+			parser_update_and_execute(&uart_parser, data);
 		}
 
 		if (timer_has_expired(&heartbeat_timer)) {

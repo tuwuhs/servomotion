@@ -11,6 +11,7 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 #include "parser.h"
 
@@ -18,19 +19,25 @@ static void parser_execute(struct parser_ctx* ctx);
 
 void parser_init(struct parser_ctx* ctx)
 {
-	ctx->b_binary_mode = FALSE;
+	ctx->b_binary_mode = false;
 	ctx->state = PARSER_S_INIT;
 }
 
 uint8_t parser_register_commands(struct parser_ctx* ctx,
-		struct parser_item* items, uint8_t items_size)
+		struct parser_item* items)
 {
 	// Note: the parser engine does not store/copy/allocate any memory
 	// The caller has the responsibility to ensure that the context
 	//   and parser items are valid
 
+	struct parser_item* item = items;
+	uint8_t count = 0;
+	while (item->command && item->callback) {
+		item++;
+		count++;
+	}
 	ctx->items = items;
-	ctx->items_size = items_size;
+	ctx->items_count = count;
 
 	return PARSER_RETCODE_SUCCESS;
 }
@@ -63,7 +70,7 @@ uint8_t parser_update_and_execute(struct parser_ctx* ctx, char data)
 		} else {
 			if (ctx->command_count == 0 && data == 'B') {
 				// All command starting with B has 10-byte binary data
-				ctx->b_binary_mode = TRUE;
+				ctx->b_binary_mode = true;
 			}
 			ctx->command_buffer[ctx->command_count] = data;
 			ctx->command_count += 1;
@@ -79,7 +86,7 @@ uint8_t parser_update_and_execute(struct parser_ctx* ctx, char data)
 			ctx->argument_count += 1;
 		} else if (data == PARSER_SENTINEL_CLOSE) {
 			ctx->state = PARSER_S_INIT;
-			ctx->b_binary_mode = FALSE;
+			ctx->b_binary_mode = false;
 			ctx->argument_buffer[ctx->argument_count] = '\0';
 			parser_execute(ctx);
 		} else {
@@ -99,7 +106,7 @@ static void parser_execute(struct parser_ctx* ctx)
 {
 	uint8_t i;
 
-	for (i = 0; i < ctx->items_size; i++) {
+	for (i = 0; i < ctx->items_count; i++) {
 		if (strcmp(ctx->command_buffer, ctx->items[i].command) == 0) {
 			(ctx->items[i].callback)(ctx->argument_buffer, ctx->argument_count);
 			break;

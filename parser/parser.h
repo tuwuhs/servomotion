@@ -13,15 +13,8 @@
 #ifndef PARSER_H_
 #define PARSER_H_
 
+#include <stdbool.h>
 #include <stdint.h>
-
-#ifndef FALSE
-#define FALSE (1 == 0)
-#endif
-
-#ifndef TRUE
-#define TRUE (!(FALSE))
-#endif
 
 #define PARSER_COMMAND_BUFFER_SIZE   (6)
 #define PARSER_ARGUMENT_BUFFER_SIZE  (32)
@@ -53,13 +46,12 @@ struct parser_ctx {
 
 	enum e_parser_state state;
 	struct parser_item* items;
-	uint8_t items_size;
-	uint8_t b_binary_mode;
+	uint8_t items_count;
+	bool b_binary_mode;
 };
 
 void parser_init(struct parser_ctx* ctx);
-uint8_t parser_register_commands(struct parser_ctx* ctx,
-		struct parser_item* items, uint8_t items_size);
+uint8_t parser_register_commands(struct parser_ctx* ctx, struct parser_item* items);
 uint8_t parser_update_and_execute(struct parser_ctx* ctx, char data);
 
 #endif /* PARSER_H_ */
