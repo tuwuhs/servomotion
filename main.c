@@ -11,22 +11,26 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <avr/interrupt.h>
 #include <avr/io.h>
 #include <avr/wdt.h>
 #include <util/delay.h>
 
-#include "gpio.h"
-#include "timer.h"
-#include "systick.h"
-#include "uart.h"
 #include "asciiparser.h"
+#include "gpio.h"
+#include "servo.h"
+#include "systick.h"
+#include "timer.h"
+#include "uart.h"
 
 void yeah(char* arg, uint8_t arglen);
+void set_servo0_position(char* arg, uint8_t arglen);
 
 static struct gpio_pin yellow_led;
 
 struct aparser_item uart_parser_item[] = {
 	{"y", yeah},
+	{"s0", set_servo0_position},
 	{NULL, NULL}
 };
 
@@ -35,22 +39,32 @@ void yeah(char* arg, uint8_t arglen)
 	gpio_toggle(&yellow_led);
 }
 
+void set_servo0_position(char* arg, uint8_t arglen)
+{
+	int16_t pos = atoi(arg);
+	servo_set_position(0, pos);
+}
+
+void set_servo1_position(char* arg, uint8_t arglen)
+{
+	int16_t pos = atoi(arg);
+	servo_set_position(1, pos);
+}
+
 int main(void)
 {
-	struct gpio_pin green_led;
 	struct gpio_pin heartbeat_led;
-	struct gpio_pin pushbutton;
-
 	struct timer heartbeat_timer;
 
 	struct aparser_ctx uart_parser;
 
-	gpio_init_output(&green_led, &PORTB, 0, false);
+	cli();
+
 	gpio_init_output(&yellow_led, &PORTC, 0, false);
-	gpio_init_input(&pushbutton, &PORTB, 1, true);
-	gpio_init_output(&heartbeat_led, &PORTB, 2, false);
+	gpio_init_output(&heartbeat_led, &PORTB, 5, false);
 	timer_set_period_ms(&heartbeat_timer, 500);
 
+	servo_init();
 	uart_init();
 	systick_init();
 
@@ -63,12 +77,6 @@ int main(void)
 
 	for (;;) {
 		uint8_t data;
-
-		if (gpio_is_low(&pushbutton)) {
-			gpio_set_high(&green_led);
-		} else {
-			gpio_set_low(&green_led);
-		}
 
 		if (uart_getchar(&data) == UART_RETCODE_SUCCESS) {
 			uart_putchar(data);
