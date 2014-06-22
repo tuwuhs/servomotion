@@ -10,7 +10,7 @@
 #ifndef SERVO_H_
 #define SERVO_H_
 
-#define SERVO_LOG2_SMOOTHING_FACTOR (3)
+#define SERVO_LOG2_SMOOTHING_FACTOR (0)
 
 #define MAX_SERVO      (10000)
 #define MIN_SERVO      (-10000)
